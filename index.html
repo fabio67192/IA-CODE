@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CODEGUARD AI - Painel de Elite</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --panel-bg: #161b22;
+            --border-color: #30363d;
+            --text-color: #c9d1d9;
+            --accent-blue: #58a6ff;
+            --accent-green: #2ea44f;
+            --accent-red: #da3637;
+            --accent-purple: #bc8cff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+
+        h1 {
+            color: var(--accent-blue);
+            margin-top: 0;
+            text-align: center;
+            font-size: 2rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .select-box {
+            flex: 1;
+            min-width: 200px;
+            background: var(--bg-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        textarea {
+            width: 100%;
+            height: 250px;
+            background: #040d16;
+            color: #79c0ff;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 15px;
+            font-family: 'Consolas', 'Courier New', Courier, monospace;
+            font-size: 1rem;
+            resize: vertical;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #ffffff;
+            transition: transform 0.1s, opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:active { transform: scale(0.98); }
+        .btn:hover { opacity: 0.9; }
+
+        .btn-analyze { background-color: var(--accent-blue); }
+        .btn-security { background-color: var(--accent-red); }
+        .btn-tests { background-color: var(--accent-green); }
+        .btn-education { background-color: var(--accent-purple); }
+
+        .output-box {
+            margin-top: 25px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            min-height: 100px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        .loading {
+            color: var(--accent-blue);
+            font-weight: bold;
+            text-align: center;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🛡️ CODEGUARD AI — Sistema de Auditoria Universal</h1>
+    
+    <div class="controls">
+        <select id="language-select" class="select-box">
+            <option value="python">🐍 Python</option>
+            <option value="javascript">🟨 JavaScript</option>
+            <option value="typescript">🟦 TypeScript</option>
+            <option value="html">🌐 HTML</option>
+            <option value="css">🎨 CSS</option>
+            <option value="java">☕ Java</option>
+            <option value="csharp">🎯 C# (C-Sharp)</option>
+            <option value="php">🐘 PHP</option>
+            <option value="cpp">⚙️ C++</option>
+            <option value="rust">🦀 Rust</option>
+            <option value="sql">🗄️ SQL</option>
+        </select>
+    </div>
+
+    <textarea id="code-input" placeholder="// Cole ou escreva o seu código aqui para o CodeGuard avaliar..."></textarea>
+
+    <div class="actions-grid">
+        <button class="btn btn-analyze" onclick="sendToCodeGuard('analyze')">🔍 Análise Geral</button>
+        <button class="btn btn-security" onclick="sendToCodeGuard('security')">🛡️ Auditoria de Segurança</button>
+        <button class="btn btn-tests" onclick="sendToCodeGuard('tests')">🧪 Gerar Testes Unitários</button>
+        <button class="btn btn-education" onclick="sendToCodeGuard('education')">🎓 Modo Educativo</button>
+    </div>
+
+    <h3>📋 Relatório do CodeGuard:</h3>
+    <div id="output-report" class="output-box">O relatório da IA aparecerá aqui assim que clicares numa das ações acima...</div>
+</div>
+
+<script>
+    async function sendToCodeGuard(actionName) {
+        const codeValue = document.getElementById('code-input').value.strip ? document.getElementById('code-input').value.trim() : document.getElementById('code-input').value;
+        const languageValue = document.getElementById('language-select').value;
+        const outputDiv = document.getElementById('output-report');
+
+        if (!codeValue) {
+            alert('Por favor, escreve ou cola algum código primeiro!');
+            return;
+        }
+
+        // Mostra estado de carregamento profissional
+        outputDiv.innerHTML = `<div class="loading">⏳ CODEGUARD AI está a processar a tua requisição com o modo [${actionName.toUpperCase()}]... Por favor, aguarda.</div>`;
+
+        try {
+            const response = await fetch('http://127.0.0.1:5000/api/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    code: codeValue,
+                    language: languageValue,
+                    action: actionName
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.analysis) {
+                outputDiv.textContent = data.analysis;
+            } else if (data.error) {
+                outputDiv.innerHTML = `<span style="color: var(--accent-red)">❌ Erro no Servidor: ${data.error}</span>`;
+            } else {
+                outputDiv.innerHTML = `<span style="color: var(--accent-red)">❌ Erro inesperado ao obter resposta.</span>`;
+            }
+
+        } catch (error) {
+            outputDiv.innerHTML = `<span style="color: var(--accent-red)">❌ Falha de Conexão: Garante que o teu Backend (app.py) está ligado no terminal! (Erro: ${error.message})</span>`;
+        }
+    }
+</script>
+
+</body>
+</html>
